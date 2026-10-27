@@ -1,0 +1,44 @@
+{
+  "description": "内置英文版 Pokémon Scarlet & Violet—151 示例卡；保留原卡面，不代表官方提供本技能。",
+  "cards": [
+    {
+      "name": "小火龙",
+      "english_name": "charmander",
+      "number": "168/165",
+      "set": "Scarlet & Violet—151",
+      "language": "English",
+      "artist": "miki kudo",
+      "source_url": "https://images.pokemontcg.io/sv3pt5/168_hires.png",
+      "width": 733,
+      "height": 1024,
+      "sha256": "de8ff2d7db3876477cdbf82041bec0a6e6b5ab3fc6ec073883de3ef5dbc63f76",
+      "file": "168-charmander.png"
+    },
+    {
+      "name": "火恐龙",
+      "english_name": "charmeleon",
+      "number": "169/165",
+      "set": "Scarlet & Violet—151",
+      "language": "English",
+      "artist": "miki kudo",
+      "source_url": "https://images.pokemontcg.io/sv3pt5/169_hires.png",
+      "width": 733,
+      "height": 1024,
+      "sha256": "f6b77d9c990fb5f5799f98b949c42cfe7cfe34c6652ab53538a600350cd11110",
+      "file": "169-charmeleon.png"
+    },
+    {
+      "name": "喷火龙ex",
+      "english_name": "charizard-ex",
+      "number": "199/165",
+      "set": "Scarlet & Violet—151",
+      "language": "English",
+      "artist": "miki kudo",
+      "source_url": "https://images.pokemontcg.io/sv3pt5/199_hires.png",
+      "width": 733,
+      "height": 1024,
+      "sha256": "0110f9df7555bc0868af581077db31176f26c890ec3d4a9c3fb95fba66f60a3a",
+      "file": "199-charizard-ex.png"
+    }
+  ]
+}

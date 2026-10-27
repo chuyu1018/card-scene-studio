@@ -1,0 +1,22 @@
+[
+  {
+    "file": "single.png",
+    "tool": "built-in image_gen",
+    "purpose": "Homepage scene background; original cards composited in HTML",
+    "sha256": "8e96c0062dbe264b2f109b8dd30506f020ebeddf754283d4fabdc1da531f1456"
+  },
+  {
+    "file": "multi.png",
+    "tool": "built-in image_gen",
+    "purpose": "Homepage scene background; original cards composited in HTML",
+    "sha256": "1a00fd31c994f1ffc43706fe564de5afdb5a58c218aa49d8a47ca347df824ef8"
+  },
+  {
+    "file": "grid.png",
+    "tool": "built-in image_gen",
+    "purpose": "Homepage scene background; original cards composited in HTML",
+    "sha256": "b32218111b0aeef66dc1ffd00ed2932d9161ce7c7fbb395b9c0a7e45312a0ee2",
+    "layout": "slots 6,4,2; lower-left to upper-right",
+    "generation_id": "exec-8dbd50d4-86a9-4265-ae48-7ba8e1fd80fd"
+  }
+]

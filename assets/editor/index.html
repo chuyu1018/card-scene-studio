@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>卡景工坊</title>
+<link rel="stylesheet" href="editor.css">
+</head>
+<body class="is-home">
+<main id="home" class="home" aria-label="选择示例布局或上传我的卡牌">
+  <div class="starter-gallery" id="starterGallery">
+    <button class="starter" data-starter="single" aria-label="使用单卡布局：小火龙">
+      <span class="starter-face"><span class="card-sleeve"><img src="demos/168-charmander.png" width="733" height="1024" alt="小火龙单卡示例" draggable="false"></span></span>
+      <span class="starter-preview" aria-hidden="true"></span><span class="starter-caption"><strong>单卡</strong><span>小火龙</span></span>
+    </button>
+    <button class="starter" data-starter="multi" aria-label="使用多卡布局：小火龙和火恐龙">
+      <span class="starter-face"><span class="card-sleeve"><img src="demos/169-charmeleon.png" width="733" height="1024" alt="小火龙与火恐龙多卡示例" draggable="false"></span></span>
+      <span class="starter-preview" aria-hidden="true"></span><span class="starter-caption"><strong>多卡</strong><span>小火龙 + 火恐龙</span></span>
+    </button>
+    <button class="starter" data-starter="grid" aria-label="使用九宫格布局：三张卡沿左下到右上的对角线排列">
+      <span class="starter-face"><span class="card-sleeve"><img src="demos/199-charizard-ex.png" width="733" height="1024" alt="三张宝可梦卡对角线九宫格示例" draggable="false"></span></span>
+      <span class="starter-preview" aria-hidden="true"></span><span class="starter-caption"><strong>九宫格</strong><span>三张进化卡</span></span>
+    </button>
+  </div>
+  <button class="empty-upload" id="emptyUploadBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg>上传我的卡牌</button>
+</main>
+<header class="header">
+  <a id="homeLink" class="brand" href="./" aria-label="返回首页"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect class="mark-back" x="5" y="7" width="22" height="29" rx="5" transform="rotate(-12 16 21)"/><rect class="mark-front" x="14" y="4" width="22" height="29" rx="5"/><path d="M20 24l5-9 5 9M22 21h6"/></svg><div class="brand-type"><h1>卡景工坊<span class="brand-dot">.</span></h1><span class="tagline">Card Scene Studio</span></div></a>
+  <div class="submit-area"><button id="submitBtn" class="submit" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M15 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h3"/></svg><span id="submitLabel">复制生成指令</span></button><p id="handoffNote" class="handoff-note">粘贴到 ChatGPT，并附上下载的排版文件</p></div>
+</header>
+<div id="receipt" class="receipt hidden" role="status"><div id="receiptText"></div><a id="layoutDownload" download>重新下载排版文件</a><details><summary>查看生成指令</summary><textarea id="requestText" readonly aria-label="生成指令，选中后复制"></textarea></details></div>
+<main class="app" id="workspace">
+<section class="canvas-section" id="canvasPanel" aria-label="画布">
+  <div id="stage" class="stage">
+    <div id="board" class="board rectangle" tabindex="0" role="application" aria-label="卡牌排版画布。点击图片选中，点击空白取消选中。右下角方形把手可旋转和缩放。九宫格拖拽换位。">
+      <div id="surface" class="surface"><div id="gridOverlay" class="grid-overlay hidden"></div></div>
+      <div id="placedCards"></div>
+      <div id="guideX" class="center-guide vertical" aria-hidden="true"></div><div id="guideY" class="center-guide horizontal" aria-hidden="true"></div>
+    </div>
+    <div id="cardActions" class="card-actions hidden" role="group" aria-label="编辑选中卡牌">
+      <button id="replaceBtn" title="替换选中卡牌，保留位置与角度"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h15m-4-4 4 4-4 4M20 16H5m4-4-4 4 4 4"/></svg><span>替换</span></button>
+      <button id="deleteBtn" class="delete-card hidden" aria-label="删除选中图片"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7m4-7v7"/></svg><span>删除</span></button>
+    </div>
+    <input id="replaceInput" type="file" accept="image/png,image/jpeg,image/webp" class="hidden">
+    <div id="empty" class="empty editor-empty"><p>上传卡牌，开始排版</p><button id="editorUploadBtn" class="empty-upload">上传我的卡牌</button></div>
+  </div>
+  <div class="canvas-bottom">
+    <div class="history-actions" role="group" aria-label="编辑历史"><button id="undoBtn" aria-label="撤销" title="撤销（⌘ / Ctrl Z）" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5 4 10l5 5M4 10h10a6 6 0 0 1 0 12" transform="translate(0 -2)"/></svg></button><button id="redoBtn" aria-label="重做" title="重做（⌘ / Ctrl Shift Z）" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5 5 5-5 5m5-5H10a6 6 0 0 0 0 12" transform="translate(0 -2)"/></svg></button></div>
+    <div class="canvas-footer-actions"><button id="metricsToggle" class="metrics-toggle" aria-expanded="false" aria-controls="cardMetrics"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16M8 5v4m8 1v4m-5 1v4"/></svg><span>卡片参数</span><svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></button><button id="addImageBtn" class="add-image hidden"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg>增加图片</button></div>
+  </div>
+  <div id="cardMetrics" class="card-metrics hidden"><table aria-label="卡片位置、大小和角度"><thead><tr><th scope="col">卡片</th><th scope="col">位置 · px</th><th scope="col">尺寸 · px</th><th scope="col">角度</th></tr></thead><tbody id="cardMetricsRows"></tbody></table></div>
+</section>
+<aside class="controls" id="settingsPanel" aria-label="创作设置">
+  <div class="settings-heading"><h2>创作设置</h2><div class="setting-tabs" role="tablist" aria-label="创作工具"><button id="layoutTab" role="tab" data-setting="layout" aria-controls="layoutOptions" aria-selected="true">布局</button><button id="canvasTab" role="tab" data-setting="canvas" aria-controls="canvasOptions" aria-selected="false" tabindex="-1">画布</button></div></div>
+  <section id="layoutOptions" role="tabpanel" aria-labelledby="layoutTab"><div class="layouts" role="group" aria-label="布局"><button class="layout" data-mode="single" aria-pressed="true"><svg viewBox="0 0 34 25"><rect x="2" y="3" width="30" height="19"/><rect x="14" y="7" width="7" height="11"/></svg>单卡</button><button class="layout" data-mode="multi" aria-pressed="false"><svg viewBox="0 0 34 25"><rect x="2" y="3" width="30" height="19"/><rect x="7" y="6" width="7" height="10"/><rect x="21" y="10" width="7" height="10"/></svg>多卡</button><button class="layout" data-mode="grid" aria-pressed="false"><svg viewBox="0 0 34 25"><rect x="6" y="1" width="22" height="23"/><path d="M13.33 1v23m7.34-23v23M6 8.67h22M6 16.33h22"/></svg>九宫格</button></div></section>
+  <section id="canvasOptions" class="hidden" role="tabpanel" aria-labelledby="canvasTab"><div class="shapes" role="group" aria-label="画布比例与形状"><button class="shape" data-preset="1:1" aria-pressed="true"><svg viewBox="0 0 30 23"><rect x="7" y="3" width="17" height="17"/></svg>1:1</button><button class="shape" data-preset="1:2" aria-pressed="false"><svg viewBox="0 0 30 23"><rect x="10" y="2" width="10" height="20"/></svg>1:2</button><button class="shape" data-preset="2:1" aria-pressed="false"><svg viewBox="0 0 30 23"><rect x="4" y="6" width="22" height="11"/></svg>2:1</button><button class="shape" data-preset="16:9" aria-pressed="false"><svg viewBox="0 0 30 23"><rect x="3" y="5" width="24" height="13.5"/></svg>16:9</button><button class="shape" data-preset="9:16" aria-pressed="false"><svg viewBox="0 0 30 23"><rect x="9" y="1" width="12" height="21"/></svg>9:16</button><button class="shape" data-preset="hex-pointy" aria-pressed="false"><svg viewBox="0 0 30 23"><path d="M15 1L24.1 6.25v10.5L15 22 5.9 16.75V6.25Z"/></svg>尖顶六边形</button><button class="shape" data-preset="hex-flat" aria-pressed="false"><svg viewBox="0 0 30 23"><path d="M9.2 1.45h11.6L26.6 11.5l-5.8 10.05H9.2L3.4 11.5Z"/></svg>平顶六边形</button></div></section>
+</aside>
+<details id="results" class="results hidden"><summary id="resultSummary">生成文件</summary><p id="resultNote" class="result-note"></p><div id="outputLinks" class="downloads"></div></details>
+<input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp" multiple class="hidden">
+</main><div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const assetUrl=path=>typeof BUNDLED_ASSETS!=='undefined'?BUNDLED_ASSETS[path]:path;
+const PRESETS={'1:1':[2400,2400,'rectangle'],'1:2':[1200,2400,'rectangle'],'2:1':[2400,1200,'rectangle'],'16:9':[2400,1350,'rectangle'],'9:16':[1350,2400,'rectangle'],'hex-pointy':[2078,2400,'hex-pointy'],'hex-flat':[2400,2078,'hex-flat']};
+const DEMO_CARDS=[{id:'charmander',name:'小火龙',number:'168/165',file:'168-charmander.png'},{id:'charmeleon',name:'火恐龙',number:'169/165',file:'169-charmeleon.png'},{id:'charizard-ex',name:'喷火龙 ex',number:'199/165',file:'199-charizard-ex.png'}];
+let state={version:1,mode:'single',canvas:{width:1350,height:2400,dpi:300,shape:'rectangle',preset:'9:16'},grid:{rows:3,cols:3,slot:4},style:{preset:'follow',prompt:'',backgroundOnly:true},cards:[],selected:null,singleId:null};
+let savedId=null,dirty=true,saving=false,pollTimer=null,toastTimer=null,backgroundUrl=null,downloadUrl=null;
+const maxCache=new Map();
+let replaceTarget=null,settingTab='layout',freeCanvas=null,metricsOpen=false;
+const undoStack=[],redoStack=[];
+let dragging=false,swallowCardClick=false;
+// Images are immutable strings shared by snapshots; each gesture is one history entry.
+function captureEdit(){return{state:{...state,canvas:{...state.canvas},grid:{...state.grid},style:{...state.style},cards:state.cards.map(c=>({...c,freePose:c.freePose?{...c.freePose}:undefined}))},freeCanvas:freeCanvas?{...freeCanvas}:null}}
+function editKey(snapshot){return JSON.stringify(snapshot,(key,value)=>['dataUrl','selected'].includes(key)?undefined:value)}
+function commitEdit(before){if(editKey(before)===editKey(captureEdit()))return;undoStack.push(before);if(undoStack.length>60)undoStack.shift();redoStack.length=0;updateHistory()}
+function updateHistory(){const blocked=saving||dragging;$('undoBtn').disabled=blocked||!undoStack.length;$('redoBtn').disabled=blocked||!redoStack.length}
+function restoreEdit(from,to){if(saving||dragging||!from.length)return;to.push(captureEdit());const snapshot=from.pop();state=snapshot.state;freeCanvas=snapshot.freeCanvas;maxCache.clear();markDirty();render()}
+function resetHistory(){undoStack.length=0;redoStack.length=0;updateHistory()}
+// Keep the requested height and center separately from temporary boundary fitting.
+function rememberPose(c){if(state.mode!=='grid')c.freePose={height:c.height/state.canvas.height,cx:(c.x+c.width/2)/state.canvas.width,cy:(c.y+c.height/2)/state.canvas.height,rotation:rotation(c)}}
+function applyPose(c){const p=c.freePose||{height:.5,cx:.5,cy:.5,rotation:0};c.freePose={...p};c.rotation=p.rotation;c.height=state.canvas.height*p.height;c.width=c.height*c.ratio;constrain(c,{x:p.cx*state.canvas.width,y:p.cy*state.canvas.height})}
+function showGuides(x=false,y=false){$('guideX').classList.toggle('visible',x);$('guideY').classList.toggle('visible',y)}
+function updateMetrics(){
+  const cards=activeCards(),body=$('cardMetricsRows');$('cardMetrics').classList.toggle('hidden',!cards.length||!metricsOpen);$('metricsToggle').disabled=!cards.length;$('metricsToggle').setAttribute('aria-expanded',String(metricsOpen));
+  if([...body.children].map(row=>row.dataset.id).join('|')!==cards.map(c=>c.id).join('|')){
+    body.replaceChildren(...cards.map(c=>{const row=document.createElement('tr');row.dataset.id=c.id;for(let i=0;i<4;i++)row.append(document.createElement(i===0?'th':'td'));row.firstChild.scope='row';return row}));
+  }
+  cards.forEach((c,i)=>{const cells=body.children[i].children,values=[c.name,`X ${Math.round(c.x)} · Y ${Math.round(c.y)}`,`${Math.round(c.width)} × ${Math.round(c.height)}`,`${rotation(c).toFixed(1).replace(/\.0$/,'')}°`];values.forEach((value,j)=>{if(cells[j].textContent!==value)cells[j].textContent=value});cells[0].title=c.name;cells[1].title='图片左上角坐标（旋转前）';body.children[i].classList.toggle('active',c.id===state.selected)});
+}
+
+function rotation(c){return state.mode==='grid'?0:(c.rotation||0)}
+function normalizeAngle(value){return +((((value+180)%360)+360)%360-180).toFixed(2)}
+function notify(message,error=false){$('toast').textContent=message;$('toast').classList.remove('hidden');$('toast').classList.toggle('error',error);clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.add('hidden'),5000)}
+function selected(){return state.cards.find(c=>c.id===state.selected)||null}
+function activeCards(){return state.mode==='single'?state.cards.filter(c=>c.id===(state.singleId||state.cards[0]?.id)):state.cards}
+function vertices(){const{width:w,height:h,shape}=state.canvas;const points=shape==='hex-pointy'?[[.5,0],[1,.25],[1,.75],[.5,1],[0,.75],[0,.25]]:shape==='hex-flat'?[[.25,0],[.75,0],[1,.5],[.75,1],[.25,1],[0,.5]]:[[0,0],[1,0],[1,1],[0,1]];return points.map(([x,y])=>({x:x*w,y:y*h}))}
+function cellBounds(slot=state.grid.slot){const{width:w,height:h}=state.canvas,s=slot,x=s%3,y=Math.floor(s/3);return{left:Math.round(x*w/3),right:Math.round((x+1)*w/3),top:Math.round(y*h/3),bottom:Math.round((y+1)*h/3)}}
+function constraints(width,height,slot=state.grid.slot,angle=0){const pts=vertices(),out=[],margin=Math.min(2,state.canvas.width/100,state.canvas.height/100);for(let i=0;i<pts.length;i++){const p=pts[i],q=pts[(i+1)%pts.length],a=-(q.y-p.y),b=q.x-p.x;out.push({a,b,c:a*p.x+b*p.y+Math.abs(a*Math.cos(angle)+b*Math.sin(angle))*width/2+Math.abs(-a*Math.sin(angle)+b*Math.cos(angle))*height/2+margin*Math.hypot(a,b)})}if(state.mode==='grid'){const r=cellBounds(slot);out.push({a:1,b:0,c:r.left+width/2+margin},{a:-1,b:0,c:-r.right+width/2+margin},{a:0,b:1,c:r.top+height/2+margin},{a:0,b:-1,c:-r.bottom+height/2+margin})}return out}
+function clipPolygon(poly,k){const out=[];if(!poly.length)return out;for(let i=0;i<poly.length;i++){const p=poly[i],q=poly[(i+1)%poly.length],dp=k.a*p.x+k.b*p.y-k.c,dq=k.a*q.x+k.b*q.y-k.c,pi=dp>=-1e-7,qi=dq>=-1e-7;if(pi)out.push(p);if(pi!==qi){const t=dp/(dp-dq);out.push({x:p.x+t*(q.x-p.x),y:p.y+t*(q.y-p.y)})}}return out}
+function feasible(width,height,slot=state.grid.slot,angle=0){let poly=[{x:0,y:0},{x:state.canvas.width,y:0},{x:state.canvas.width,y:state.canvas.height},{x:0,y:state.canvas.height}];for(const k of constraints(width,height,slot,angle)){poly=clipPolygon(poly,k);if(!poly.length)break}return poly}
+function maximumWidth(c){const key=[state.canvas.width,state.canvas.height,state.canvas.shape,state.mode,c.slot??state.grid.slot,c.ratio,rotation(c)].join('|');if(maxCache.has(key))return maxCache.get(key);let lo=0,hi=Math.hypot(state.canvas.width,state.canvas.height);for(let i=0;i<40;i++){const mid=(lo+hi)/2;if(feasible(mid,mid/c.ratio,c.slot??state.grid.slot,rotation(c)*Math.PI/180).length)lo=mid;else hi=mid}const value=lo*.99999;maxCache.set(key,value);return value}
+function nearestPoint(point,poly){if(!poly.length)return{x:state.canvas.width/2,y:state.canvas.height/2};let inside=true;for(let i=0;i<poly.length;i++){const p=poly[i],q=poly[(i+1)%poly.length];if((q.x-p.x)*(point.y-p.y)-(q.y-p.y)*(point.x-p.x)<-1e-6){inside=false;break}}if(inside)return point;let best=poly[0],distance=Infinity;for(let i=0;i<poly.length;i++){const p=poly[i],q=poly[(i+1)%poly.length],dx=q.x-p.x,dy=q.y-p.y,t=Math.max(0,Math.min(1,((point.x-p.x)*dx+(point.y-p.y)*dy)/(dx*dx+dy*dy||1))),candidate={x:p.x+t*dx,y:p.y+t*dy},d=(candidate.x-point.x)**2+(candidate.y-point.y)**2;if(d<distance){distance=d;best=candidate}}return best}
+function constrain(c,center={x:c.x+c.width/2,y:c.y+c.height/2}){if(state.mode==='grid'){fitGridCard(c);return}c.width=Math.min(Math.max(1,c.width),maximumWidth(c));c.height=c.width/c.ratio;const point=nearestPoint(center,feasible(c.width,c.height,c.slot??state.grid.slot,rotation(c)*Math.PI/180));c.x=point.x-c.width/2;c.y=point.y-c.height/2}
+function fitCard(c){if(state.mode==='grid'){fitGridCard(c);return}c.freePose={height:.5,cx:.5,cy:.5,rotation:0};applyPose(c)}
+
+// Defaults use separated cells; the available canvas may reduce 650 px for large sets.
+function arrangeMultiCards(){
+  const n=state.cards.length;if(!n)return;
+  const W=state.canvas.width,H=state.canvas.height,areaW=W*.84,areaH=H*.76;
+  let best=null;
+  for(let cols=1;cols<=n;cols++){
+    const rows=Math.ceil(n/cols),cw=areaW/cols,ch=areaH/rows;
+    const size=Math.min(650,...state.cards.map(c=>Math.min(cw*.86/Math.min(1,c.ratio),ch*.72/Math.min(1,1/c.ratio))));
+    const score=size-Math.abs(cols-Math.min(2,n))*.001;
+    if(!best||score>best.score)best={cols,rows,cw,ch,size,score};
+  }
+  const {cols,cw,ch,size}=best;
+  state.cards.forEach((c,i)=>{
+    const row=Math.floor(i/cols),col=i%cols,inRow=Math.min(cols,n-row*cols);
+    const left=(W-areaW)/2+(col+(cols-inRow)/2)*cw,top=(H-areaH)/2+row*ch;
+    c.rotation=0;c.width=size*Math.min(1,c.ratio);c.height=c.width/c.ratio;
+    const region=()=>{let poly=feasible(c.width,c.height);for(const k of [{a:1,b:0,c:left+c.width/2},{a:-1,b:0,c:-left-cw+c.width/2},{a:0,b:1,c:top+c.height/2},{a:0,b:-1,c:-top-ch+c.height/2}])poly=clipPolygon(poly,k);return poly};
+    let poly=region();for(let attempt=0;!poly.length&&attempt<80;attempt++){c.width*=.94;c.height=c.width/c.ratio;poly=region()}
+    const stagger=n===1?0:(col%2?1:-1)*ch*.15,point=nearestPoint({x:left+cw/2,y:top+ch/2+stagger},poly);
+    c.x=point.x-c.width/2;c.y=point.y-c.height/2;rememberPose(c);
+  });
+}
+
+function markDirty(){dirty=true;backgroundUrl=null;$('receipt').classList.add('hidden');if(savedId)$('resultSummary').textContent='上次生成文件';$('surface').style.backgroundImage=''}
+function selectCard(id){if(saving||state.selected===id)return;state.selected=id;if(selected())state.singleId=id;if(state.mode==='grid'&&selected())state.grid.slot=selected().slot;render()}
+function shapeClip(){return state.canvas.shape==='hex-pointy'?'polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)':state.canvas.shape==='hex-flat'?'polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)':'none'}
+function nextGridSlot(){const used=new Set(state.cards.map(c=>c.slot));return [6,4,2,0,8,1,3,5,7].find(i=>!used.has(i))}
+function fitGridCard(c){
+  const cell=cellBounds(c.slot??4),w=cell.right-cell.left,h=cell.bottom-cell.top;
+  c.rotation=0;c.width=Math.min(w,h*c.ratio);c.height=c.width/c.ratio;
+  c.x=cell.left+(w-c.width)/2;c.y=cell.top+(h-c.height)/2;
+}
+function assignGridSlots(keepCanvas=false){
+  const ratio=state.cards[0]?.ratio||733/1024;
+  if(!keepCanvas){
+    const cw=ratio<=1?Math.max(1,Math.round(1024*ratio)):1024,ch=ratio<=1?1024:Math.max(1,Math.round(1024/ratio));
+    state.canvas={width:cw*3,height:ch*3,dpi:300,shape:'rectangle',preset:null};
+    state.grid={...state.grid,rows:3,cols:3,layout:'card-sized',cellWidth:cw,cellHeight:ch};
+  }
+  const used=new Set(),order=[6,4,2,0,8,1,3,5,7];
+  state.cards.forEach(c=>{if(!Number.isInteger(c.slot)||c.slot<0||c.slot>8||used.has(c.slot))c.slot=order.find(i=>!used.has(i));used.add(c.slot);fitGridCard(c)});
+  state.grid.slot=selected()?.slot??state.cards[0]?.slot??4;
+}
+function moveToSlot(c,slot){
+  if(slot===c.slot||slot<0||slot>8)return;
+  const other=state.cards.find(x=>x!==c&&x.slot===slot),old=c.slot;
+  c.slot=slot;fitGridCard(c);if(other){other.slot=old;fitGridCard(other)}
+  state.grid.slot=slot;markDirty();
+}
+function buildGrid(){
+  for(let i=0;i<9;i++){const tile=document.createElement('div');tile.className='tile';tile.dataset.slot=i;$('gridOverlay').append(tile)}
+}
+function setSettingTab(tab){
+  if(state.mode==='grid')tab='layout';settingTab=tab;
+  document.querySelectorAll('[data-setting]').forEach(b=>{const on=b.dataset.setting===tab;b.setAttribute('aria-selected',on);b.tabIndex=on?0:-1});
+  $('layoutOptions').classList.toggle('hidden',tab!=='layout');$('canvasOptions').classList.toggle('hidden',tab!=='canvas');
+  $('canvasTab').classList.toggle('hidden',state.mode==='grid');
+}
+function updateSubmitState(){
+  const hasCards=!!activeCards().length;
+  $('submitBtn').disabled=!hasCards||saving;
+  $('submitLabel').textContent=saving?busyLabel:'复制生成指令';
+  $('handoffNote').textContent=!hasCards?'先上传一张卡牌':'粘贴到 ChatGPT，并附上下载的排版文件';
+  document.querySelectorAll('.controls button, #emptyUploadBtn, #editorUploadBtn, [data-starter], #addImageBtn').forEach(b=>b.disabled=saving);
+  ['replaceBtn','deleteBtn'].forEach(id=>$(id).disabled=saving||!selected());
+  $('addImageBtn').disabled=saving||state.cards.length>=(state.mode==='grid'?9:12);updateHistory();
+}
+let busyLabel='正在准备指令…';
+function setBusy(value,label='正在准备指令…'){
+  saving=value;busyLabel=label;
+  document.body.classList.toggle('busy',value);
+  $('workspace').setAttribute('aria-busy',String(value));
+  updateSubmitState();
+}
+function render(){
+  document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===state.mode));
+  document.querySelectorAll('[data-preset]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.preset===state.canvas.preset));
+  setSettingTab(settingTab);
+  $('gridOverlay').classList.toggle('hidden',state.mode!=='grid');
+  [...$('gridOverlay').children].forEach((b,i)=>{b.classList.toggle('reserved',state.cards.some(c=>c.slot===i));b.classList.toggle('selected-slot',!!selected()&&i===selected().slot)});
+  $('empty').classList.toggle('hidden',!!state.cards.length);$('stage').classList.toggle('has-cards',!!state.cards.length);
+  $('board').tabIndex=state.cards.length?0:-1;
+  $('addImageBtn').classList.toggle('hidden',state.mode==='single');
+  $('deleteBtn').classList.toggle('hidden',state.mode==='single'||(state.mode==='multi'&&state.cards.length<2));
+  updateSubmitState();renderBoard();updateMetrics();
+}
+function resizeBoard(){
+  const stage=$('stage'),style=getComputedStyle(stage);
+  const maxW=Math.max(40,stage.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight));
+  const maxH=Math.max(40,stage.clientHeight-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom));
+  const ratio=state.canvas.width/state.canvas.height;
+  let w=maxW,h=w/ratio;if(h>maxH){h=maxH;w=h*ratio}
+  $('board').style.width=`${w}px`;$('board').style.height=`${h}px`;positionCardActions();
+}
+function showEditor(){document.body.classList.remove('is-home');requestAnimationFrame(resizeBoard)}
+function adjustCard(action){
+  const c=selected();if(saving||!c||state.mode==='grid')return;
+  const before=captureEdit(),center={x:c.x+c.width/2,y:c.y+c.height/2};
+  if(action==='left'||action==='right')c.rotation=normalizeAngle(rotation(c)+(action==='right'?5:-5));
+  else{c.width*=action==='grow'?1.06:1/1.06;c.height=c.width/c.ratio}
+  constrain(c,center);rememberPose(c);markDirty();commitEdit(before);render();
+}
+function positionElement(el,c){el.style.left=c.x/state.canvas.width*100+'%';el.style.top=c.y/state.canvas.height*100+'%';el.style.width=c.width/state.canvas.width*100+'%';el.style.height=c.height/state.canvas.height*100+'%';el.style.transform=`rotate(${rotation(c)}deg)`}
+function renderBoard(){
+  resizeBoard();$('board').className='board '+state.canvas.shape;$('surface').style.clipPath=shapeClip();
+  $('surface').style.backgroundImage=backgroundUrl?`url("${backgroundUrl.replace(/"/g,'%22')}")`:'';
+  $('placedCards').replaceChildren();
+  activeCards().forEach(c=>{
+    const node=document.createElement('div');node.className='card-node'+(c.id===state.selected?' selected':'');node.dataset.id=c.id;positionElement(node,c);
+    node.tabIndex=0;node.setAttribute('role','button');node.setAttribute('aria-label',`编辑 ${c.name}`);node.setAttribute('aria-pressed',c.id===state.selected);
+    const img=document.createElement('img');img.src=c.dataUrl;img.alt=c.name;node.append(img);
+    if(c.id===state.selected&&state.mode!=='grid'){
+      const handle=document.createElement('button');handle.className='handle';handle.type='button';handle.title='拖拽旋转和缩放';handle.setAttribute('aria-label','旋转和缩放把手，左右键旋转，加减键缩放');
+      handle.onkeydown=e=>{if(['ArrowLeft','ArrowRight','+','=','-','_'].includes(e.key)){e.preventDefault();e.stopPropagation();adjustCard(e.key==='ArrowLeft'?'left':e.key==='ArrowRight'?'right':['+','='].includes(e.key)?'grow':'shrink');$('placedCards').querySelector('.handle')?.focus()}};
+      node.append(handle);
+    }
+    node.addEventListener('pointerdown',startDrag);
+    node.addEventListener('keydown',e=>{if(e.target===node&&['Enter',' '].includes(e.key)){e.preventDefault();selectCard(c.id);$('board').focus({preventScroll:true})}});
+    $('placedCards').append(node);
+  });positionCardActions();
+}
+function positionCardActions(){
+  const bar=$('cardActions'),c=selected(),visible=!!c&&!document.body.classList.contains('is-home');
+  bar.classList.toggle('hidden',!visible);if(!visible)return;
+  const board=$('board'),scale=board.clientWidth/state.canvas.width,a=rotation(c)*Math.PI/180;
+  const halfHeight=(Math.abs(Math.sin(a))*c.width+Math.abs(Math.cos(a))*c.height)*scale/2;
+  const halfWidth=(Math.abs(Math.cos(a))*c.width+Math.abs(Math.sin(a))*c.height)*scale/2;
+  const cx=board.offsetLeft+(c.x+c.width/2)*scale,top=board.offsetTop+(c.y+c.height/2)*scale-halfHeight;
+  const gap=Math.min(14,Math.max(4,top-bar.offsetHeight-4));
+  let left=cx-bar.offsetWidth/2,y=top-bar.offsetHeight-gap;
+  if(y<4){left=cx+halfWidth+14;if(left+bar.offsetWidth>$('stage').clientWidth-8)left=cx-halfWidth-bar.offsetWidth-14;y=top}
+  bar.style.left=Math.max(8,Math.min($('stage').clientWidth-bar.offsetWidth-8,left))+'px';
+  bar.style.top=Math.max(4,Math.min($('stage').clientHeight-bar.offsetHeight-4,y))+'px';
+}
+function startDrag(e){
+  if(e.button!==0||saving)return;e.preventDefault();
+  const node=e.currentTarget,c=state.cards.find(x=>x.id===node.dataset.id),transforming=!!e.target.closest('.handle');
+  state.selected=c.id;state.singleId=c.id;if(state.mode==='grid')state.grid.slot=c.slot;
+  const before=captureEdit(),snapshot={...c},originalBackground=backgroundUrl,rect=$('board').getBoundingClientRect(),sx=state.canvas.width/rect.width,sy=state.canvas.height/rect.height;
+  const start={x:e.clientX,y:e.clientY,cx:c.x+c.width/2,cy:c.y+c.height/2,width:c.width};
+  const centerScreen={x:rect.left+start.cx/sx,y:rect.top+start.cy/sy};
+  const angle0=Math.atan2(e.clientY-centerScreen.y,e.clientX-centerScreen.x),distance0=Math.max(1,Math.hypot(e.clientX-centerScreen.x,e.clientY-centerScreen.y));
+  let moved=false,targetSlot=null,snapX=false,snapY=false,snapAngle=false;dragging=true;updateHistory();
+  node.setPointerCapture(e.pointerId);document.querySelectorAll('.card-node').forEach(n=>n.classList.toggle('selected',n===node));positionCardActions();
+  function move(ev){
+    if(!moved&&Math.hypot(ev.clientX-start.x,ev.clientY-start.y)<3)return;moved=true;
+    if(state.mode==='grid'){
+      const x=(ev.clientX-rect.left)/rect.width,y=(ev.clientY-rect.top)/rect.height;
+      targetSlot=x>=0&&x<1&&y>=0&&y<1?Math.floor(y*3)*3+Math.floor(x*3):null;
+      [...$('gridOverlay').children].forEach((tile,i)=>tile.classList.toggle('drop-target',i===targetSlot));
+      [...$('placedCards').children].forEach(n=>n.classList.toggle('drop-candidate',n!==node&&state.cards.find(c=>c.id===n.dataset.id)?.slot===targetSlot));
+      node.classList.add('grid-dragging');node.style.transform=`translate(${ev.clientX-start.x}px, ${ev.clientY-start.y}px)`;return;
+    }
+    if(transforming){
+      const angle=Math.atan2(ev.clientY-centerScreen.y,ev.clientX-centerScreen.x);
+      c.rotation=normalizeAngle((snapshot.rotation||0)+(angle-angle0)*180/Math.PI);
+      snapAngle=Math.abs(c.rotation)<=(snapAngle?7:4);if(snapAngle)c.rotation=0;
+      if(ev.shiftKey)c.rotation=normalizeAngle(Math.round(c.rotation/15)*15);
+      node.classList.toggle('angle-snapped',snapAngle);
+      const distance=Math.hypot(ev.clientX-centerScreen.x,ev.clientY-centerScreen.y);
+      c.width=Math.max(16,start.width*distance/distance0);c.height=c.width/c.ratio;constrain(c,{x:start.cx,y:start.cy});
+    }else{
+      let x=start.cx+(ev.clientX-start.x)*sx,y=start.cy+(ev.clientY-start.y)*sy;
+      snapX=Math.abs(x-state.canvas.width/2)/sx<=(snapX?12:7);snapY=Math.abs(y-state.canvas.height/2)/sy<=(snapY?12:7);
+      if(snapX)x=state.canvas.width/2;if(snapY)y=state.canvas.height/2;
+      constrain(c,{x,y});showGuides(snapX&&Math.abs(c.x+c.width/2-x)<.1,snapY&&Math.abs(c.y+c.height/2-y)<.1);
+    }
+    backgroundUrl=null;$('surface').style.backgroundImage='';positionElement(node,c);positionCardActions();updateMetrics();
+  }
+  function stop(ev){
+    // Rebuilding the selected node can retarget a touch's compatibility click to its toolbar.
+    swallowCardClick=ev.type==='pointerup';
+    node.removeEventListener('pointermove',move);node.removeEventListener('pointerup',stop);node.removeEventListener('pointercancel',stop);
+    [...$('gridOverlay').children].forEach(t=>t.classList.remove('drop-target'));
+    if(ev.type==='pointercancel'){Object.assign(c,snapshot);backgroundUrl=originalBackground}
+    else if(moved){if(state.mode==='grid'){if(targetSlot!==null)moveToSlot(c,targetSlot)}else{rememberPose(c);markDirty()}commitEdit(before)}
+    dragging=false;showGuides();render();$('board').focus({preventScroll:true});
+  }
+  node.addEventListener('pointermove',move);node.addEventListener('pointerup',stop);node.addEventListener('pointercancel',stop);
+}
+async function readCard(file){
+  if(!['image/png','image/jpeg','image/webp'].includes(file.type))throw Error('格式不支持，请选择 PNG、JPG 或 WebP。');
+  if(file.size>15*1024*1024)throw Error('图片超过 15 MB，请先缩小文件。');
+  const dataUrl=await imageData(file),img=await loadImage(dataUrl);
+  if(img.width*img.height>40000000)throw Error('图片超过 4000 万像素，请先缩小');
+  return {id:crypto.randomUUID(),name:file.name,dataUrl,ratio:img.width/img.height,x:0,y:0,width:1,height:1,rotation:0};
+}
+async function replaceFile(file,id){
+  const c=state.cards.find(c=>c.id===id);if(saving||!file||!c)return;setBusy(true,'正在替换原图…');
+  try{
+    const image=await readCard(file),before=captureEdit(),center={x:c.x+c.width/2,y:c.y+c.height/2},width=Math.min(c.width,c.height*image.ratio);
+    Object.assign(c,{assetId:image.id,name:image.name,dataUrl:image.dataUrl,ratio:image.ratio,width,height:width/image.ratio});delete c.demoId;constrain(c,center);
+    rememberPose(c);markDirty();commitEdit(before);notify('图片已替换。');
+  }catch(error){notify(error.message,true)}finally{replaceTarget=null;$('replaceInput').value='';setBusy(false);render()}
+}
+function deleteSelected(){
+  if(saving||state.mode==='single'||(state.mode==='multi'&&state.cards.length<2)||!selected())return;
+  const before=captureEdit(),id=state.selected;state.cards=state.cards.filter(c=>c.id!==id);state.selected=null;
+  if(state.singleId===id)state.singleId=state.cards[0]?.id??null;markDirty();commitEdit(before);render();$('board').focus();
+}
+
+function imageData(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(Error('无法读取图片'));r.readAsDataURL(file)})}
+function loadImage(src){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(Error('图片无法解码，请使用 PNG、JPG 或 WebP'));img.src=src})}
+function resetProject(mode='single'){
+  clearInterval(pollTimer);savedId=null;backgroundUrl=null;freeCanvas=null;
+  state={version:1,mode,canvas:{width:1350,height:2400,dpi:300,shape:'rectangle',preset:'9:16'},grid:{rows:3,cols:3,slot:4},style:{preset:'follow',prompt:'',backgroundOnly:true},cards:[],selected:null,singleId:null};
+  settingTab='layout';metricsOpen=false;$('results').classList.add('hidden');$('receipt').classList.add('hidden');history.replaceState(null,'',location.pathname);maxCache.clear();resetHistory();
+}
+async function addFiles(files){
+  if(saving)return;const fromHome=document.body.classList.contains('is-home'),before=captureEdit();setBusy(true,'正在导入图片…');let count=0;
+  for(const file of files){
+    if(!fromHome||count){if(state.cards.length>=(state.mode==='grid'?9:12)){notify('当前布局的图片数量已达上限。',true);break}}
+    try{
+      const c=await readCard(file);
+      if(fromHome&&!count)resetProject(files.length>1?'multi':'single');
+      if(state.mode==='single'&&state.cards.length)state.mode='multi';
+      if(state.mode==='grid')c.slot=nextGridSlot();fitCard(c);
+      state.cards.push(c);state.selected=c.id;state.singleId=c.id;if(state.mode==='grid')state.grid.slot=c.slot;count++;
+    }catch(error){notify(error.message,true)}
+  }
+  if(count){if(state.mode==='multi')arrangeMultiCards();else if(state.mode==='grid')assignGridSlots();markDirty();if(!fromHome)commitEdit(before);showEditor()}setBusy(false);render();$('fileInput').value='';
+}
+function currentProject(){return{version:1,mode:state.mode,canvas:{...state.canvas},grid:{...state.grid,slot:state.mode==='grid'?(activeCards()[0]?.slot??state.grid.slot):state.grid.slot},style:{...state.style,backgroundOnly:true},cards:activeCards().map(({id,name,dataUrl,x,y,width,height,slot,rotation:angle=0})=>({id,name,dataUrl,x:+x.toFixed(4),y:+y.toFixed(4),width:+width.toFixed(4),height:+height.toFixed(4),rotation:state.mode==='grid'?0:angle,...(state.mode==='grid'?{slot}:{})}))}}
+function validateProject(p){if(p?.version!==1||!['single','multi','grid'].includes(p.mode))throw Error('项目格式不兼容');for(const key of ['width','height'])if(!Number.isInteger(p.canvas?.[key])||p.canvas[key]<3||p.canvas[key]>8192)throw Error('画布尺寸需要在 3–8192 px 之间');if(p.canvas.width*p.canvas.height>40000000)throw Error('画布超过 4000 万像素');if(!Array.isArray(p.cards)||!p.cards.length||p.cards.length>12||(p.mode==='single'&&p.cards.length!==1)||(p.mode==='grid'&&p.cards.length>9))throw Error('原图数量不符合布局');if(p.mode==='grid'&&(!Number.isInteger(p.grid?.slot)||p.grid.slot<0||p.grid.slot>8))throw Error('九宫格卡位无效');if(p.mode==='grid'){const slots=p.cards.map(c=>c.slot??(p.cards.length===1?p.grid.slot:null));if(slots.some(s=>!Number.isInteger(s)||s<0||s>8)||new Set(slots).size!==slots.length)throw Error('每张原卡需要独立的九宫格位置')}for(const c of p.cards){if(![c.x,c.y,c.width,c.height].every(Number.isFinite)||c.width<1||c.height<1)throw Error('卡片尺寸太小，请换一个画布比例');if(!Number.isFinite(c.rotation??0)||Math.abs(c.rotation??0)>180)throw Error('旋转角度需要在 -180° 至 180° 之间');if(p.mode==='grid'&&(c.rotation??0)!==0)throw Error('九宫格中的卡牌需要保持竖直');}return p}
+function inferPreset(canvas){if(canvas.shape==='hex-pointy'||canvas.shape==='hex-flat')return canvas.shape;return Object.keys(PRESETS).find(k=>PRESETS[k][2]==='rectangle'&&Math.abs(canvas.width/canvas.height-PRESETS[k][0]/PRESETS[k][1])<.0001)||null}
+async function openSaved(id){showEditor();setBusy(true,'正在读取排版…');try{const r=await fetch(`/api/projects/${encodeURIComponent(id)}`);if(!r.ok)throw Error('无法读取已保存的排版');const response=await r.json(),p=validateProject(response.project||response),cards=[];for(const [i,item]of p.cards.entries()){let dataUrl=item.dataUrl;if(!dataUrl&&item.src){const source=await fetch(item.src);if(!source.ok)throw Error('无法读取原图');dataUrl=await imageData(await source.blob())}const img=await loadImage(dataUrl);cards.push({...item,...(p.mode==='grid'?{slot:item.slot??p.grid.slot}:{}),id:item.id||`card-${i}`,dataUrl,ratio:img.width/img.height})}state={version:1,mode:p.mode,canvas:{...p.canvas,dpi:p.canvas.dpi||300,shape:p.canvas.shape||'rectangle',preset:p.canvas.preset||inferPreset(p.canvas)},grid:{...p.grid,rows:3,cols:3,slot:p.grid?.slot??4},style:{preset:p.style?.preset||'follow',prompt:p.style?.prompt||'',backgroundOnly:true},cards,selected:null,singleId:cards[0].id};const migrateGrid=state.mode==='grid'&&state.grid.layout!=='card-sized';if(state.mode==='grid'){assignGridSlots(!migrateGrid);state.grid.slot=cards[0].slot}savedId=id;dirty=migrateGrid;backgroundUrl=null;$('receipt').classList.add('hidden');resetHistory();if(migrateGrid){markDirty();notify('九宫格已适配为固定卡片比例，保存后生效。')}render();startPolling(id)}catch(error){notify(error.message,true)}finally{setBusy(false);render()}}
+function generationPrompt(project,filename){
+  const mode={single:'单卡',multi:'多卡共景',grid:'九宫格'}[project.mode];
+  const cards=project.cards.map((c,i)=>`${i+1}. ${c.name}：左上角 (${c.x}, ${c.y}) px，尺寸 ${c.width} × ${c.height} px，旋转 ${c.rotation}°${project.mode==='grid'?`，第 ${c.slot+1} 格`:''}`).join('\n');
+  return `请使用 $card-scene-studio，读取我同时附上的「${filename}」。文件包含原图和精确排版数据。请先导入该文件，保留图片比例、坐标、尺寸和角度；不要重新排版。\n布局：${mode}；画布：${project.canvas.width} × ${project.canvas.height} px；形状：${project.canvas.shape}。\n${cards}\n请沿用原插画风格，生成一张连续的纯环境背景。背景中不要出现角色、原卡、文字或卡框；原卡保持独立，只叠回单独的合成预览。交付纯背景整图、原卡合成预览、透明留位图${project.mode==='grid'?'，以及九宫格切片（排除原卡所在格的打印背景片）':''}。检查场景衔接后提供下载文件。若没有收到排版附件，请先提醒我上传，不要猜测原图。`;
+}
+async function copyPrompt(text){
+  try{await navigator.clipboard.writeText(text);return true}catch(_){
+    const field=$('requestText');field.value=text;const details=field.closest('details');details.open=true;$('receipt').classList.remove('hidden');field.focus();field.select();
+    try{return document.execCommand('copy')}catch(_){return false}
+  }
+}
+async function submitProject(){
+  if(saving||!activeCards().length)return;
+  try{
+    const p=validateProject(currentProject()),filename=`卡景工坊-${{single:'单卡',multi:'多卡',grid:'九宫格'}[p.mode]}-${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
+    const blob=new Blob([JSON.stringify({format:'card-scene-studio-layout',...p})],{type:'application/json'});
+    if(blob.size>100*1024*1024)throw Error('项目超过 100 MB，请减少或缩小原图');
+    const prompt=generationPrompt(p,filename);$('requestText').value=prompt;
+    const copiedPromise=copyPrompt(prompt);setBusy(true);
+    if(downloadUrl)URL.revokeObjectURL(downloadUrl);downloadUrl=URL.createObjectURL(blob);
+    const link=$('layoutDownload');link.href=downloadUrl;link.download=filename;link.click();
+    const copied=await copiedPromise;dirty=false;
+    $('receiptText').textContent=copied?'指令已复制。请粘贴到 ChatGPT，并附上刚下载的排版文件。':'请复制下方指令发给 ChatGPT，并附上刚下载的排版文件。';
+    $('receipt').classList.remove('hidden');$('requestText').closest('details').open=!copied;
+    notify(copied?'指令已复制，排版文件已准备好。':'浏览器未允许复制，请手动复制展开的指令。',!copied);
+  }catch(error){notify(error.message,true)}finally{setBusy(false)}
+}
+function renderOutputLinks(outputs){const box=$('outputLinks');box.replaceChildren();const names=['background.png','background-cutout.png','composite-preview.png','outputs.zip','manifest.json'],labels={'background.png':'纯背景整图','background-cutout.png':'原卡留位透明图','composite-preview.png':'原卡合成预览','outputs.zip':'全部文件 ZIP','manifest.json':'输出清单'};function link(o){const a=document.createElement('a');a.href=o.url;a.textContent=labels[o.name]||o.name||'下载文件';a.target='_blank';a.rel='noopener';a.setAttribute('download','');return a}const all=outputs.filter(o=>o.url);all.filter(o=>names.includes(o.name)).sort((a,b)=>names.indexOf(a.name)-names.indexOf(b.name)).forEach(o=>box.append(link(o)));const extras=all.filter(o=>!names.includes(o.name));for(const[prefix,title]of[['tiles/','九宫格全部切片'],['print-eight/','八张打印切片'],['print-background/','其余格背景切片'],['','其他文件']]){const group=extras.filter(o=>prefix?o.name?.startsWith(prefix):!o.name?.startsWith('tiles/')&&!o.name?.startsWith('print-eight/')&&!o.name?.startsWith('print-background/'));if(!group.length)continue;const details=document.createElement('details'),summary=document.createElement('summary'),list=document.createElement('div');summary.textContent=`${title} · ${group.length} 份`;list.className='tile-links';group.forEach(o=>list.append(link(o)));details.append(summary,list);box.append(details)}}
+async function checkStatus(id){try{const r=await fetch(`/api/projects/${encodeURIComponent(id)}/status`);if(!r.ok)return;const s=await r.json();if(savedId!==id)return;const names={generating:'正在由 ChatGPT 生成背景。',needs_review:'文件已生成，正在检查细节。',exported:'文件已导出，等待检查。',complete:'背景已完成。',completed:'背景已完成。',blocked:'生成已停止，请查看聊天说明。',failed:'生成未完成，请查看聊天说明。'};if(names[s.status]||s.outputs?.length){$('results').classList.remove('hidden');$('resultSummary').textContent=dirty?'上次生成文件':'生成文件';$('resultNote').textContent=names[s.status]||'已导出文件。';renderOutputLinks(s.outputs||[])}if(s.background_url&&!dirty&&['complete','completed'].includes(s.status)){backgroundUrl=s.background_url;renderBoard()}if(['complete','completed','blocked','failed'].includes(s.status))clearInterval(pollTimer)}catch(_){}}
+function startPolling(id){clearInterval(pollTimer);checkStatus(id);pollTimer=setInterval(()=>checkStatus(id),6000)}
+function changeMode(mode){
+  if(saving||state.mode===mode)return;if(mode==='grid'&&state.cards.length>9){notify('九宫格最多放 9 张卡，请先删除几张。',true);return}
+  const before=captureEdit(),oldMode=state.mode;
+  if(oldMode!=='grid')state.cards.forEach(c=>{if(!c.freePose)rememberPose(c)});
+  if(mode==='grid')freeCanvas={...state.canvas};
+  if(mode==='single')state.singleId=selected()?.id||state.singleId||state.cards[0]?.id;
+  state.mode=mode;
+  if(mode==='grid')assignGridSlots();
+  else{
+    if(oldMode==='grid')state.canvas=freeCanvas||{width:1350,height:2400,dpi:300,shape:'rectangle',preset:'9:16'};
+    if(mode==='multi')arrangeMultiCards();else state.cards.forEach(applyPose);
+  }
+  state.selected=null;markDirty();commitEdit(before);render();
+}
+function changePreset(preset){
+  if(saving||state.mode==='grid'||preset===state.canvas.preset)return;
+  const before=captureEdit(),[width,height,shape]=PRESETS[preset];
+  state.cards.forEach(c=>{if(!c.freePose)rememberPose(c)});
+  state.canvas={width,height,dpi:300,shape,preset};state.cards.forEach(applyPose);
+  markDirty();commitEdit(before);render();
+}
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>changeMode(b.dataset.mode));
+document.querySelectorAll('[data-setting]').forEach(b=>{b.onclick=()=>setSettingTab(b.dataset.setting);b.onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();const tab=state.mode==='grid'||e.key==='Home'?'layout':e.key==='End'?'canvas':settingTab==='layout'?'canvas':'layout';setSettingTab(tab);$(tab+'Tab').focus()}}});
+document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>changePreset(b.dataset.preset));
+$('fileInput').onchange=e=>addFiles(e.target.files);
+$('stage').addEventListener('dragover',e=>{e.preventDefault();$('stage').classList.add('dragging-over')});
+$('stage').addEventListener('dragleave',()=>$('stage').classList.remove('dragging-over'));
+$('stage').addEventListener('drop',e=>{e.preventDefault();$('stage').classList.remove('dragging-over');addFiles(e.dataTransfer.files)});
+$('stage').addEventListener('pointerdown',e=>{if(saving||e.target.closest('.card-node, .card-actions, button, input'))return;state.selected=null;render();$('board').focus({preventScroll:true})});
+document.addEventListener('pointerdown',()=>{swallowCardClick=false},true);
+document.addEventListener('click',e=>{if(swallowCardClick&&e.detail){swallowCardClick=false;e.preventDefault();e.stopImmediatePropagation()}},true);
+document.addEventListener('pointerdown',e=>{if(!saving&&selected()&&!document.body.classList.contains('is-home')&&!e.target.closest('.card-node, .card-actions')){state.selected=null;render()}});
+$('submitBtn').onclick=submitProject;$('requestText').onclick=()=>{$('requestText').focus();$('requestText').select()};
+$('board').addEventListener('keydown',e=>{
+  if(saving)return;
+  if(e.key==='Escape'){e.preventDefault();state.selected=null;render();return}
+  const c=selected();if(!c)return;
+  if(['Delete','Backspace'].includes(e.key)&&state.mode!=='single'){e.preventDefault();deleteSelected();return}
+  if(state.mode!=='grid'&&['+','=','-','_','[',']'].includes(e.key)){e.preventDefault();adjustCard(e.key==='['?'left':e.key===']'?'right':['+','='].includes(e.key)?'grow':'shrink');return}
+  if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();
+  const before=captureEdit(),dx=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0,dy=e.key==='ArrowDown'?1:e.key==='ArrowUp'?-1:0;
+  if(state.mode==='grid'){const col=c.slot%3+dx,row=Math.floor(c.slot/3)+dy;if(col>=0&&col<3&&row>=0&&row<3)moveToSlot(c,row*3+col)}
+  else{const d=e.shiftKey?10:1;constrain(c,{x:c.x+c.width/2+dx*d,y:c.y+c.height/2+dy*d});rememberPose(c);markDirty()}commitEdit(before);render();
+});
+$('metricsToggle').onclick=()=>{metricsOpen=!metricsOpen;updateMetrics();requestAnimationFrame(resizeBoard)};
+$('undoBtn').onclick=()=>restoreEdit(undoStack,redoStack);$('redoBtn').onclick=()=>restoreEdit(redoStack,undoStack);
+document.addEventListener('keydown',e=>{
+  if(document.body.classList.contains('is-home')||e.target.closest('input,textarea,[contenteditable="true"]')||!(e.metaKey||e.ctrlKey))return;
+  if(e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?restoreEdit(redoStack,undoStack):restoreEdit(undoStack,redoStack)}
+  else if(e.key.toLowerCase()==='y'){e.preventDefault();restoreEdit(redoStack,undoStack)}
+});
+['emptyUploadBtn','editorUploadBtn','addImageBtn'].forEach(id=>$(id).onclick=()=>$('fileInput').click());
+const STARTERS={
+  single:[{id:'charmander',cx:.5,cy:.5,h:.60}],
+  multi:[{id:'charmander',cx:.29,cy:.386,h:650/2400},{id:'charmeleon',cx:.71,cy:.614,h:650/2400}],
+  grid:[{id:'charmander',cx:1/6,cy:5/6,h:1/3,slot:6},{id:'charmeleon',cx:.5,cy:.5,h:1/3,slot:4},{id:'charizard-ex',cx:5/6,cy:1/6,h:1/3,slot:2}]
+};
+async function loadStarter(mode){
+  if(saving)return;setBusy(true,'正在载入场景…');
+  try{
+    const cards=await Promise.all(STARTERS[mode].map(async item=>{
+      const demo=DEMO_CARDS.find(d=>d.id===item.id),url=assetUrl(`demos/${demo.file}`);
+      const dataUrl=url.startsWith('data:')?url:await imageData(await (await fetch(url)).blob()),img=await loadImage(dataUrl);
+      return {id:crypto.randomUUID(),name:`${demo.name} · ${demo.number}`,dataUrl,ratio:img.width/img.height,x:0,y:0,width:1,height:1,rotation:0,demoId:demo.id,...(mode==='grid'?{slot:item.slot}:{})};
+    }));
+    resetProject(mode);state.cards=cards;state.singleId=cards[0].id;state.selected=null;
+    if(mode==='grid')assignGridSlots();
+    else if(mode==='multi')arrangeMultiCards();else cards.forEach(fitCard);
+    markDirty();showEditor();render();$('board').focus({preventScroll:true});
+  }catch(error){notify(error.message,true)}finally{setBusy(false);render()}
+}
+function buildStarters(){
+  document.querySelectorAll('[data-starter]').forEach(button=>{
+    const mode=button.dataset.starter,face=button.querySelector('.starter-face'),preview=button.querySelector('.starter-preview');
+    const scene=document.createElement('span');scene.className='scene-art';scene.setAttribute('aria-hidden','true');
+    const bg=document.createElement('img');bg.className='scene-background';bg.src=assetUrl(`scenes/${mode}.png`);bg.alt='';scene.append(bg);
+    STARTERS[mode].forEach(item=>{const demo=DEMO_CARDS.find(d=>d.id===item.id),img=document.createElement('img');img.className='scene-card';img.alt='';img.src=assetUrl(`demos/${demo.file}`);img.draggable=false;img.style.left=item.cx*100+'%';img.style.top=item.cy*100+'%';img.style.height=item.h*100+'%';img.style.width=(mode==='grid'?1/3:item.h*733/1024/(mode==='multi'?9/16:1))*100+'%';scene.append(img)});
+    if(mode==='grid'){const lines=document.createElement('span');lines.className='starter-grid';for(let i=0;i<9;i++)lines.append(document.createElement('i'));scene.append(lines)}
+    const reflection=document.createElement('span');reflection.className='starter-reflection';reflection.setAttribute('aria-hidden','true');reflection.append(face.querySelector('.card-sleeve img').cloneNode(true));face.append(reflection);
+    preview.replaceChildren(scene.cloneNode(true));button.onclick=()=>loadStarter(mode);
+  });
+}
+$('replaceBtn').onclick=()=>{if(saving||!selected())return;replaceTarget=selected().id;$('replaceInput').value='';$('replaceInput').click()};
+$('replaceInput').onchange=e=>replaceFile(e.target.files[0],replaceTarget);$('replaceInput').oncancel=()=>{replaceTarget=null};$('deleteBtn').onclick=deleteSelected;
+$('homeLink').onclick=e=>{e.preventDefault();if(saving)return;state.selected=null;document.body.classList.add('is-home');$('cardActions').classList.add('hidden');$('toast').classList.add('hidden');history.replaceState(null,'',location.pathname);window.scrollTo(0,0)};
+window.addEventListener('beforeunload',e=>{if(dirty&&state.cards.length){e.preventDefault();e.returnValue=''}});
+new ResizeObserver(resizeBoard).observe($('stage'));document.querySelectorAll('[data-asset]').forEach(img=>img.src=assetUrl(img.dataset.asset));buildGrid();buildStarters();render();
+const initialId=new URLSearchParams(location.search).get('project');if(initialId)openSaved(initialId);
+</script>
+</body>
+</html>

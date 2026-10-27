@@ -1,0 +1,4 @@
+interface:
+  display_name: "卡景工坊"
+  short_description: "文字选布局或立即打开内置画布，生成卡牌连续背景和九宫格切片"
+  default_prompt: "请用 $card-scene-studio 根据我的卡图生成连续背景，先用文字选择布局和比例，需要精确摆放时立即打开技能中已打包的画布；复制生成指令和排版附件发给 ChatGPT 后继续生成。"

@@ -1,0 +1,27 @@
+[
+  {
+    "mode": "single",
+    "paths": [
+      "assets/editor/demos/168-charmander.png"
+    ],
+    "prompt": "Use case: illustration-story. Asset: real generated expansion-background for a card-art homepage. Input image is a reference card, not an edit target. Generate one square 1024x1024 continuous illustrated red sandstone canyon landscape, visually extending the environment in the reference. Match its geometric painterly rock strata, paper grain, warm peach sunbeams, deep brown ledges and tiny teal desert plants. A narrow pale cream and turquoise opening above, monumental rust cliffs at left and right, warm rocky floor below. The original reference card will be composited separately in the exact center, covering 43% of output width and 60% of output height. Design scenery to continue outside those edges, with the sunlit canyon vertically aligned behind its center. The full output must still be painted continuously including under the future card. Environment only: no Pokemon, characters, animals, card frames, UI, borders, lettering, numbers, logos, or watermarks. Do not paste or redraw the reference card. Rich refined illustration, not photorealistic, no blurred texture."
+  },
+  {
+    "mode": "multi",
+    "paths": [
+      "assets/editor/demos/168-charmander.png",
+      "assets/editor/demos/169-charmeleon.png"
+    ],
+    "prompt": "Use case: illustration-story. Asset: a true generated expansion-background for a two-card scene. Two input images are scene and art-style references, not edit targets. Generate one square 1024x1024 continuous landscape connecting the red sandstone canyon from image 1 on the left and the dark basalt volcanic cliff from image 2 on the right. Match the angular hand-painted shapes, paper grain, subtle gouache textures, warm cream atmospheric sunlight and tiny teal succulents. Smoothly connect warm terracotta ledges at left through a pale sunlit chasm in the middle into charcoal basalt with a few thin ochre-gold glowing mineral seams at right. Keep one coherent perspective and lighting, not a split-panel collage. Two original cards will later be composited separately at x=27% and x=73%, both y=50%, each 40% output width by 56% output height. Continue the environmental planes around their edges and paint the entire background including beneath future cards. Environment only, absolutely no creatures, characters, Pokemon, cards, frames, UI, text, numbers, logos or watermarks."
+  },
+  {
+    "mode": "grid",
+    "revision": "2026-10-27-antidiagonal",
+    "paths": [],
+    "prompt": "Generate a new pure environment illustration for a portrait 3 by 3 card-scene layout, overall aspect ratio 733:1024. The three inputs are previously generated empty environment studies derived from Pokemon SV151 card illustrations, used truthfully as environment/style references. No characters or cards are requested. The scene MUST ascend from lower left to upper right: the LOWER LEFT cell (x 0–33%, y 67–100%) contains the warm terracotta sandstone canyon with teal plants from image 1; the CENTER cell (x 33–67%, y 33–67%) contains the upright dark basalt chasm with golden seams and pale glowing depth from image 2; the UPPER RIGHT cell (x 67–100%, y 0–33%) contains the lavender pink cloud-filled open sky, distant mesas and small volcano from image 3. The sun should be a single small white disc at approximately x=94%, y=8%, not a second large central sun. Think one continuous vertically ascending landscape: foreground red canyon floor below, dark cliff architecture rising through center, broad pastel sky opening across the upper third. Seamlessly connect all nine regions with angular hand-painted gouache rock planes, paper grain and atmospheric haze. Paint the entire rectangular surface including the three anchor cells. No grid lines, no collage boundaries, no rectangular frames, no visible cards, no creatures, no text, no logos or watermark. This is the replacement homepage background; original cards will be independently overlaid later only in lower-left, center and upper-right cells. Output a refined continuous scenic painting.",
+    "output": "grid.png",
+    "usage": "Homepage illustrative environment; no exact-seam claim",
+    "reference_notes": "Three previously generated empty environment studies: charmander, charmeleon, charizard. Intermediate studies are not included in this package.",
+    "generation_id": "exec-8dbd50d4-86a9-4265-ae48-7ba8e1fd80fd"
+  }
+]
